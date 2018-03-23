@@ -12,21 +12,61 @@ const Card = (props) =>{
   );
 };
 
-let data = [
-	{name:"Paul O’Shannessy", 
-  avatar_url:"https://avatars1.githubusercontent.com/u/8445?v=4",
-  company: "Facebook"}, 
-  {name:"Geoffrey Grosenbach", 
-  avatar_url:"https://avatars3.githubusercontent.com/u/26?v=4",
-  company: "@hashicorp"},
-];
 
 const CardList = (props)=> {
 return(
 	<div>
-		{props.cards.map(card => <Card {...card} />)}
+		{props.cards.map(card => <Card key={card.id}{...card} />)}
 	</div>
 );
 }
 
-ReactDOM.render(<CardList cards={data} />,mountNode);
+class Form extends React.Component {
+	state = {userName : ''}
+  handleSubmit = (event) => {
+  	event.preventDefault();
+    // console.log('Event: Form Submit', this.state.userName);
+    axios.get(`https://api.github.com/users/${this.state.userName}`)
+    	.then( resp => {
+      	this.props.onSubmit(resp.data);
+        this.setState({userName: ''});
+      	// console.log(resp);
+      });
+  };
+	render(){
+  	return (
+     //f={(input) => this.userNameInput = input }
+    <form onSubmit= {this.handleSubmit}>
+    	<input type="text"
+       value = {this.state.userName}
+       onChange= {(event) => this.setState({userName : event.target.value})}
+      placeholder="Gihub username" required />
+      <button type ="submit">Add </button>
+      </form>
+    );
+  }
+}
+
+
+class App extends React.Component{
+	state = {
+      cards: []
+  };
+  
+  addNewCard = (cardInfo) => {
+  	this.setState(prevState => ({
+    	cards: prevState.cards.concat(cardInfo)
+    }));
+  };
+  
+	render(){
+  	return(
+    	<div>
+    	  	<Form onSubmit={this.addNewCard} />
+          <CardList cards ={this.state.cards} />
+    	</div>
+    );
+  }
+}
+
+ReactDOM.render(<App />, mountNode);
